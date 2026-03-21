@@ -22,7 +22,8 @@ TOOLS = [
                     },
                     "department": {
                         "type": "string",
-                        "enum": ["hr", "engineering", "sales", "finance", "general"],
+                        "enum": ["hr", "engineering",
+                                 "sales", "finance", "general"],
                         "description": "Filter by department"
                     }
                 },
@@ -34,7 +35,7 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "summarise_document",
-            "description": "Summarise a long document or text.",
+            "description": "Summarise a long document, meeting transcript, or any text.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -67,6 +68,23 @@ TOOLS = [
                 "required": ["question"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "run_agent",
+            "description": "Run a multi-step agent workflow for complex requests that need multiple operations like fetching meetings, extracting risks, and generating reports.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "request": {
+                        "type": "string",
+                        "description": "The complex request to handle"
+                    }
+                },
+                "required": ["request"]
+            }
+        }
     }
 ]
 
@@ -78,11 +96,15 @@ def route(user_message, user_id="demo"):
         model="gpt-4o",
         messages=[
             {
-                "role": "system",
-                "content": "You are an enterprise AI copilot. Use the right tool for each request."
+                "role":    "system",
+                "content": "You are an enterprise AI copilot. "
+                           "Use the right tool for each request. "
+                           "Use run_agent for complex multi-step "
+                           "requests involving meetings, risks, "
+                           "reports, or workflows."
             },
             {
-                "role": "user",
+                "role":    "user",
                 "content": user_message
             }
         ],
@@ -146,7 +168,8 @@ def _calc_cost(model, usage):
 if __name__ == "__main__":
     tests = [
         "What is the leave policy for contractors?",
-        "Summarise this text: The meeting covered Q3 goals and blockers.",
+        "Summarise this text: The meeting covered Q3 goals.",
+        "Give me all risks from this week's meetings",
         "What is the capital of France?",
     ]
     for msg in tests:
