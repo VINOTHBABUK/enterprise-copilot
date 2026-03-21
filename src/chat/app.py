@@ -2,6 +2,7 @@ import gradio as gr
 from src.chat.router import route
 from src.ingestion.database import Session, Document
 from src.meetings.summariser import summarise_text
+from src.rag.rag_chain import ask, format_response
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,31 +25,8 @@ def execute_tool(tool_name, args):
 
 
 def search_docs(query, department=None):
-    session  = Session()
-    q        = session.query(Document)
-
-    if department:
-        q = q.filter(Document.department == department)
-
-    keywords = query.split()
-    for keyword in keywords:
-        if len(keyword) > 4:
-            q = q.filter(Document.raw_text.contains(keyword))
-
-    docs = q.limit(3).all()
-    session.close()
-
-    if not docs:
-        return "No matching documents found in the knowledge base."
-
-    results = []
-    for doc in docs:
-        results.append(
-            f"**{doc.title}** ({doc.department})\n"
-            f"{doc.summary or doc.raw_text[:300]}...\n"
-            f"Source: {doc.url}"
-        )
-    return "\n\n---\n\n".join(results)
+    result = ask(query, department)
+    return format_response(result)
 
 
 def summarise(content, fmt):

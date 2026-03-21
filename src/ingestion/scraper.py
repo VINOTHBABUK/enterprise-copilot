@@ -1,10 +1,19 @@
 import requests
 import hashlib
+import re
 from bs4 import BeautifulSoup
 from src.ingestion.database import Session, Document
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+def clean_text(text):
+    text  = re.sub(r'\[edit\]', '', text)
+    text  = re.sub(r'\[\d+\]', '', text)
+    text  = re.sub(r'\n{3,}', '\n\n', text)
+    lines = [l for l in text.split('\n') if len(l.strip()) > 20]
+    return '\n'.join(lines)
 
 
 def scrape_url(url: str):
@@ -25,6 +34,7 @@ def scrape_url(url: str):
         tag.decompose()
 
     raw_text     = soup.get_text(separator="\n", strip=True)
+    raw_text     = clean_text(raw_text)
     title        = soup.title.string if soup.title else url
     content_hash = hashlib.md5(raw_text.encode()).hexdigest()
 
@@ -37,9 +47,9 @@ def scrape_url(url: str):
 
 
 def scrape_all(urls, department):
-    session    = Session()
-    new_count  = 0
-    skipped    = 0
+    session   = Session()
+    new_count = 0
+    skipped   = 0
 
     for url in urls:
         print(f"Scraping: {url}")
