@@ -54,6 +54,18 @@ class LLMLog(Base):
     eval_score  = Column(Float)
     created_at  = Column(DateTime, default=datetime.utcnow)
 
+class User(Base):
+    __tablename__ = "users"
+    id            = Column(String, primary_key=True)
+    email         = Column(String, unique=True, nullable=False)
+    name          = Column(String, nullable=False)
+    password_hash = Column(String, nullable=False)
+    role          = Column(String, default="general")
+    departments   = Column(JSON, default=["general"])
+    is_active     = Column(String, default="true")
+    created_at    = Column(DateTime, default=datetime.utcnow)
+    last_login    = Column(DateTime, nullable=True)
+
 
 def init_db():
     os.makedirs("data", exist_ok=True)
